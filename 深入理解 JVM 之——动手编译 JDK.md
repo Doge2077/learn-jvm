@@ -4,6 +4,8 @@
 
 本篇为深入理解 `Java` 虚拟机第一章的实战内容，推荐在学习前先掌握基础的 `Linux` 操作、编译原理基础以及扎实的 `C/C++` 功底。
 
+该系列的 `GitHub` 仓库：[https://github.com/Doge2077/learn-jvm](https://github.com/Doge2077/learn-jvm)
+
 ****
 
 ## 构建编译环境
