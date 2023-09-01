@@ -2,6 +2,12 @@
 
 ****
 
+本篇为深入理解 `Java` 虚拟机第一章的实战内容，推荐在学习前先掌握基础的 `Linux` 操作、编译原理、计算机组成原理等计算机基础以及扎实的 `C/C++` 功底。
+
+该系列的 `GitHub` 仓库：[https://github.com/Doge2077/learn-jvm](https://github.com/Doge2077/learn-jvm)
+
+****
+
 ## 运行时数据区域
 
 ****
@@ -41,9 +47,9 @@
 
 局部变量表用于存放编译期可知的各种 `Java` 虚拟机基本数据类型、对象引用和 `returnAddress` 类型。局部变量表的存储空间以局部变量槽（Slot）表示，其中 `long` 和 `double` 类型的数据占用两个变量槽，其他数据类型占用一个变量槽。
 
-> HotSpot虚拟机的栈容量是不可以动态扩展的，以前的Classic虚拟机倒是可以。所以在HotSpot虚拟机上是不会由于虚拟机栈无法扩展而导致OutOfMemoryError异常——只要线程申请栈空间成功了就不会有OOM，但是如果申请时就失败，仍然是会出现OOM异常的
+> HotSpot 虚拟机的栈容量是不可以动态扩展的，以前的 Classic 虚拟机倒是可以。所以在 HotSpot 虚拟机上是不会由于虚拟机栈无法扩展而导致 OutOfMemoryError 异常——只要线程申请栈空间成功了就不会有 OOM，但是如果申请时就失败，仍然是会出现 OOM 异常的
 
-一般情况下，局部变量表所需的内存空间在编译期间确定，并在方法运行期间不会改变大小（变比昂槽的数量）。
+一般情况下，局部变量表所需的内存空间在编译期间确定，并在方法运行期间不会改变大小（变量槽的数量）。
 
 ****
 
@@ -156,7 +162,7 @@
 
 ****
 
-在HotSpot虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：
+在 `HotSpot` 虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：
 
 * 对象头（Header）：主要存储两类信息，第一类存储对象自身的运行时数据，如哈希码（Hash Code）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等；第二类存储类型指针，指向它的类型元数据，用于确定是哪个类的实例。
 * 实例数据（Instance Data）：对象真正存储的有效信息，即程序员定义的各种类型的字段内容，无论是从父类继承下来的，还是在子类中定义的字段都必须记录起来。
@@ -206,8 +212,6 @@ public class HeapOOM {
 
 ```shell
 Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
-	at Learn06.HeapOOM$OOMObject.<init>(HeapOOM.java:8)
-	at Learn06.HeapOOM.main(HeapOOM.java:13)
 ```
 
 `java.lang.OutOfMemoryError: Java heap space` 表明了该异常是 `Java` 堆空间异常。
@@ -218,7 +222,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 
 ****
 
-`HotSpot` 虚拟机中并不区分虚拟机栈和本地方法栈，因此对于 `HotSpot` 来说，`-Xoss` 参数（设置本地方法栈大小）虽然存在，但实际上是没有任何效果的，栈容量只能由 `-Xss` 参数来设定。
+由于 `HotSpot` 虚拟机中并不区分虚拟机栈和本地方法栈，因此对于 `HotSpot` 来说，`-Xoss` 参数（设置本地方法栈大小）虽然存在，但实际上是没有任何效果的，栈容量只能由 `-Xss` 参数来设定。
 
 关于虚拟机栈和本地方法栈，在《Java虚拟机规范》中描述了两种异常：
 
@@ -231,7 +235,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 public class JavaVMStackSOF {
     private int stackLength = 1;
     public void stackLeak() {
-        stackLength++;
+        stackLength ++;
         stackLeak();
     }
     public static void main(String[] args) throws Throwable {
@@ -251,7 +255,175 @@ public class JavaVMStackSOF {
 ```shell
 stack length:23360
 Exception in thread "main" java.lang.StackOverflowError
-	at Learn06.JavaVMStackSOF.stackLeak(JavaVMStackSOF.java:7)
-	at Learn06.JavaVMStackSOF.stackLeak(JavaVMStackSOF.java:7)
 ```
 
+每次递归调用都会在虚拟机栈中申请空间，直到达到最大深度。
+
+对于第二种异常，我们要尽可能地多占局部变量表空间，唯一能做的就是定义大量的变量来实现：
+
+```java
+public class JavaVMStackSOF {
+    private static int stackLength = 0;
+
+    public static void test() {
+        long unused1, unused2, unused3, unused4, unused5, unused6, unused7, unused8, unused9, unused10,
+                unused11, unused12, unused13, unused14, unused15, unused16, unused17, unused18, unused19, unused20,
+                unused21, unused22, unused23, unused24, unused25, unused26, unused27, unused28, unused29, unused30,
+                unused31, unused32, unused33, unused34, unused35, unused36, unused37, unused38, unused39, unused40,
+                unused41, unused42, unused43, unused44, unused45, unused46, unused47, unused48, unused49, unused50,
+                unused51, unused52, unused53, unused54, unused55, unused56, unused57, unused58, unused59, unused60,
+                unused61, unused62, unused63, unused64, unused65, unused66, unused67, unused68, unused69, unused70,
+                unused71, unused72, unused73, unused74, unused75, unused76, unused77, unused78, unused79, unused80,
+                unused81, unused82, unused83, unused84, unused85, unused86, unused87, unused88, unused89, unused90,
+                unused91, unused92, unused93, unused94, unused95, unused96, unused97, unused98, unused99, unused100,
+                unused101, unused102, unused103, unused104, unused105, unused106, unused107, unused108, unused109, unused110,
+                unused111, unused112, unused113, unused114, unused115, unused116, unused117, unused118, unused119, unused120,
+                unused121, unused122, unused123, unused124, unused125, unused126, unused127, unused128, unused129, unused130,
+                unused131, unused132, unused133, unused134, unused135, unused136, unused137, unused138, unused139, unused140,
+                unused141, unused142, unused143, unused144, unused145, unused146, unused147, unused148, unused149, unused150,
+                unused151, unused152, unused153, unused154, unused155, unused156, unused157, unused158, unused159, unused160,
+                unused161, unused162, unused163, unused164, unused165, unused166, unused167, unused168, unused169, unused170,
+                unused171, unused172, unused173, unused174, unused175, unused176, unused177, unused178, unused179, unused180,
+                unused181, unused182, unused183, unused184, unused185, unused186, unused187, unused188, unused189, unused190,
+                unused191, unused192, unused193, unused194, unused195, unused196, unused197, unused198, unused199, unused200;
+
+        unused1 = unused2 = unused3 = unused4 = unused5 = unused6 = unused7 = unused8 = unused9 = unused10 =
+                unused11 = unused12 = unused13 = unused14 = unused15 = unused16 = unused17 = unused18 = unused19 = unused20
+                        = unused21 = unused22 = unused23 = unused24 = unused25 = unused26 = unused27 = unused28 = unused29 = unused30
+                        = unused31 = unused32 = unused33 = unused34 = unused35 = unused36 = unused37 = unused38 = unused39 = unused40
+                        = unused41 = unused42 = unused43 = unused44 = unused45 = unused46 = unused47 = unused48 = unused49 = unused50
+                        = unused51 = unused52 = unused53 = unused54 = unused55 = unused56 = unused57 = unused58 = unused59 = unused60
+                        = unused61 = unused62 = unused63 = unused64 = unused65 = unused66 = unused67 = unused68 = unused69 = unused70
+                        = unused71 = unused72 = unused73 = unused74 = unused75 = unused76 = unused77 = unused78 = unused79 = unused80
+                        = unused81 = unused82 = unused83 = unused84 = unused85 = unused86 = unused87 = unused88 = unused89 = unused90
+                        = unused91 = unused92 = unused93 = unused94 = unused95 = unused96 = unused97 = unused98 = unused99 = unused100
+                        = unused101 = unused102 = unused103 = unused104 = unused105 = unused106 = unused107 = unused108 = unused109 = unused110
+                        = unused111 = unused112 = unused113 = unused114 = unused115 = unused116 = unused117 = unused118 = unused119 = unused120
+                        = unused121 = unused122 = unused123 = unused124 = unused125 = unused126 = unused127 = unused128 = unused129 = unused130
+                        = unused131 = unused132 = unused133 = unused134 = unused135 = unused136 = unused137 = unused138 = unused139 = unused140
+                        = unused141 = unused142 = unused143 = unused144 = unused145 = unused146 = unused147 = unused148 = unused149 = unused150
+                        = unused151 = unused152 = unused153 = unused154 = unused155 = unused156 = unused157 = unused158 = unused159 = unused160
+                        = unused161 = unused162 = unused163 = unused164 = unused165 = unused166 = unused167 = unused168 = unused169 = unused170
+                        = unused171 = unused172 = unused173 = unused174 = unused175 = unused176 = unused177 = unused178 = unused179 = unused180
+                        = unused181 = unused182 = unused183 = unused184 = unused185 = unused186 = unused187 = unused188 = unused189 = unused190
+                        = unused191 = unused192 = unused193 = unused194 = unused195 = unused196 = unused197 = unused198 = unused199 = unused200
+                        = 1145141919810L;
+        stackLength++;
+        test();
+    }
+
+    public static void main(String[] args) {
+        try {
+            test();
+        } catch (Error e) {
+            System.out.println("stack length:" + stackLength);
+            throw e;
+        }
+    }
+}
+
+```
+
+运行结果如下：
+
+```shell
+stack length:306
+Exception in thread "main" java.lang.StackOverflowError
+```
+
+可以看到结果并不是我们想要的 `OutOfMemoryError` 异常。
+
+这是因为 `HotSpot` 虚拟机的栈是不可动态扩展的，所以在 `HotSpot` 虚拟机上不会由于虚拟机栈无法扩展而导致 `OutOfMemoryError` 异常，这点我们在最初章节已经提到过了。
+
+****
+
+### 方法区和运行时常量池溢出
+
+****
+
+运行时常量池是方法区的一部分，所以这两个区域的溢出测试可以放到一起进行。
+
+前面曾经提到 `HotSpot` 从 `JDK7`开始逐步“去永久代”的计划，并在 `JDK8` 中完全使用元空间来代替永久代，我们可以使用如下代码来进行测试：
+
+```java
+public class RuntimeConstantPoolOOM {
+    public static void main(String[] args) {
+        Set<String> set = new HashSet<String>();
+        int i = 0;
+        while (true) {
+            set.add(String.valueOf(i ++).intern());
+        }
+    }
+}
+```
+
+执行 `javac RuntimeConstantPoolOOM.java` 进行编译，再通过 `-XX:PermSize` 和 ` -XX:MaxPermSize` 参数设置永久代大小，接着执行：
+
+```shell
+java -XX:PermSize=6M -XX:MaxPermSize=6M RuntimeConstantPoolOOM
+```
+
+虚拟机报错如下：
+
+```shell
+Java HotSpot(TM) 64-Bit Server VM warning: ignoring option PermSize=6M; support was removed in 8.0
+Java HotSpot(TM) 64-Bit Server VM warning: ignoring option MaxPermSize=6M; support was removed in 8.0
+```
+
+提示我们在 `JDK8` 已经将该参数移除了，如果使用 `JDK7` 及之前的版本运行，应该会出现如下结果：
+
+```shell
+Exception in thread "main" java.lang.OutOfMemoryError: PermGen space
+```
+
+而我们使用的高版本则需限制 `-Xmx` 参数来调整（自 `JDK7` 起，原本存放在永久代的字符串常量池被移至Java堆）：
+
+```shell
+java -Xmx6m RuntimeConstantPoolOOM
+```
+
+运行后出现如下结果：
+
+```shell
+Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+```
+
+****
+
+### 本机直接内存溢出
+
+****
+
+直接内存（Direct Memory）的容量大小可通过 `-XX:MaxDirectMemorySize` 参数来指定，如果不去指定，则默认与 `Java` 堆最大值（由 `-Xmx` 指定）一致。
+
+我们使用如下代码进行测试：
+
+```java
+public class DirectMemoryOOM {
+    private static final int _1MB = 1024 * 1024;
+    public static void main(String[] args) throws Exception {
+        Field unsafeField = Unsafe.class.getDeclaredFields()[0];
+        unsafeField.setAccessible(true);
+        Unsafe unsafe = (Unsafe) unsafeField.get(null);
+        while (true) {
+            unsafe.allocateMemory(_1MB);
+        }
+    }
+}
+```
+
+在编译后，我们设置执行参数如下：
+
+```shell
+java -Xmx20M -XX:MaxDirectMemorySize=10M DirectMemoryOOM
+```
+
+运行后结果如下：
+
+```shell
+Exception in thread "main" java.lang.OutOfMemoryError  
+```
+
+这是由于在上述代码的每次循环中，`unsafe.allocateMemory(_1MB)` 会调用 `Unsafe` 类的 `allocateMemory` 方法来分配 `1MB` 的直接内存空间，最终导致直接内存溢出。
+
+****
