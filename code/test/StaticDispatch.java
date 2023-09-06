@@ -1,5 +1,3 @@
-package Learn07;
-
 public class StaticDispatch {
     static abstract class Human {
     }
@@ -26,7 +24,7 @@ public class StaticDispatch {
         Human man = new Man();
         Human woman = new Woman();
         StaticDispatch sr = new StaticDispatch();
-        sr.sayHello(man);
-        sr.sayHello(woman);
+        sr.sayHello((Man) man);
+        sr.sayHello((Woman) woman);
     }
 }

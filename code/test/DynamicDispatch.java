@@ -1,5 +1,3 @@
-package Learn07;
-
 public class DynamicDispatch {
     static abstract class Human {
         protected abstract void sayHello();
